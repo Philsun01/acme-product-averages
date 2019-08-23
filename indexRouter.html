@@ -4,40 +4,84 @@
         <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
         <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/react-router-dom/5.0.1/react-router-dom.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
         <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
         <!--Babel Library-->
       <style>
+        h1 {
+          font-size: 2rem;
+        }
         nav{
           display: flex;
           justify-content: space-around;
+        }
+        .selected {
+          border: 1px dotted red;
         }
       </style>
     </head>
 
     <body bgcolor = grey>
+      <h1> Acme Product Averages React</h1>
       <div id = 'root'></div>
       <script type = 'text/babel'> // conversts JSX into regular Javascript
-        console.log(ReactRouterDOM);
+
         const { HashRouter, Switch, Link, Route, Redirect   } = ReactRouterDOM;
         const {render} = ReactDOM;
         const {createElement, Component} = React;
+        const urls = [
+          'https://acme-users-api-rev.herokuapp.com/api/companies',
+          'https://acme-users-api-rev.herokuapp.com/api/products',
+          'https://acme-users-api-rev.herokuapp.com/api/offerings'
+          ]
         const root = document.querySelector('#root');
 
-        render(<div><h1>Hello World</h1><hr/></div>,root);
+        const Home2 = () => {
 
-        const Home = () => <h1>Home</h1>;
+          return (<h1>Home2</h1>)
+        };
         const Products = () => <h1>Products</h1>;
 
+        const Nav = (props) => {
+          const path = props.location.pathname;
+          return (
+            <nav>
+                <Link to= '/home' className = {path === '/home' ? "selected" : ""}>Home</Link>
+                <Link to= '/products' className = {path === '/products' ? "selected" : ""} >Products</Link>
+            </nav>
+          )
+        }
+
         class App extends Component {
+          constructor(){
+            super();
+              this.state = {
+                companies:[],
+                products:[],
+                offerings:[]
+                }
+
+          }
+
+          async componentDidMount() {
+            const rawData = await Promise.all( urls.map( url => axios.get(url)));
+            const [companies, products, offerings] = rawData.map(obj=>obj.data);
+            this.setState( { companies, products, offerings } );
+
+
+          }
+
           render(){
+            const { companies, products, offerings }= this.state;
+            console.log(companies);
+            console.log(products);
+            console.log(offerings);
+
           return (
             <HashRouter>
-              <nav>
-                <Link to= '/home'>Home</Link>
-                <Link to= '/products'>Products</Link>
-              </nav>
+              <Route component = { Nav } />
               <Switch>
-                <Route path='/home' component = { Home } />
+                <Route path='/home' component = { Home2 } />
                 <Route path='/products' component = { Products } />
                 <Redirect to = '/home' />
               </Switch>
