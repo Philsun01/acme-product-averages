@@ -36,11 +36,53 @@
           ]
         const root = document.querySelector('#root');
 
-        const Home2 = () => {
+        const Home2 = ({products}) => {
 
-          return (<h1>Home2</h1>)
+          if(products){
+            console.log(products[0]);
+            const avg = (products.reduce((agg,product)=>{
+                          return agg+product.suggestedPrice},0)
+                          /products.length).toFixed(2);
+            console.log("average is " + avg);
+            // Note for myself, React will only process one component, so I can only return one tag, put everything in one <div> first
+            return (
+              <div>
+                <h1> Home Page Title </h1>
+                <p>We have {products.length} products with an average price of ${avg}</p>
+              </div>
+              )
+            } else {
+              return <p> Waiting for Data to Load </p>
+              }
+
         };
-        const Products = () => <h1>Products</h1>;
+        const Products = ({list}) => {
+
+          if(list){
+            console.log(list);
+            return (
+              <div>
+                <h1> Product List Page  </h1>
+                <hr/>
+                {
+                  list.map((product,idx)=>{
+                  return(
+                    <div key = {idx}>
+                      <h2>Product: {product.name}</h2>
+                      <h2>Suggest Price: {product.suggestedPrice}</h2>
+                      <h2>Average Price: {product.averagePrice}</h2>
+                      <h2>Lowest Price: {product.lowestPrice}</h2>
+                      <hr/>
+                    </div>
+                  )
+                })
+              }
+                <p>Mapping Function here</p>
+              </div>
+              )
+            } else {
+              return <p> Waiting for Data to Load </p>
+              }};
 
         const Nav = (props) => {
           const path = props.location.pathname;
@@ -56,33 +98,38 @@
           constructor(){
             super();
               this.state = {
-                companies:[],
-                products:[],
-                offerings:[]
+                companies: false,
+                products: false,
+                offerings: false,
+                list: false
                 }
-
           }
 
           async componentDidMount() {
             const rawData = await Promise.all( urls.map( url => axios.get(url)));
             const [companies, products, offerings] = rawData.map(obj=>obj.data);
-            this.setState( { companies, products, offerings } );
+            //Create my filtered list first before adding it to my state
+            const list = products.map(product=>{
+              return {
+                name: "hi",
+                suggestedPrice: "re",
+                averagePrice: "me",
+                lowestPrice: "Yo"
+              }
 
-
+            });
+            this.setState( { companies, products, offerings, list} );
           }
 
           render(){
-            const { companies, products, offerings }= this.state;
-            console.log(companies);
-            console.log(products);
-            console.log(offerings);
+            const {products, list } = this.state;
 
           return (
             <HashRouter>
               <Route component = { Nav } />
               <Switch>
-                <Route path='/home' component = { Home2 } />
-                <Route path='/products' component = { Products } />
+                <Route path='/home' render = { () => <Home2 products = {products}  />} />
+                <Route path='/products' render = { () => <Products list = {list} />} />
                 <Redirect to = '/home' />
               </Switch>
             </HashRouter>
@@ -91,8 +138,6 @@
         }
 
         render(<App />, root);
-
-
       </script>
     </body>
 </html>
